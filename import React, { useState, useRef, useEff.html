@@ -1,0 +1,313 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { ShoppingCart, ChevronLeft, ChevronRight, User, MapPin, CheckCircle, Package, Plus } from 'lucide-react';
+
+const App = () => {
+  const [view, setView] = useState('home'); // home, brand, cart, success
+  const [selectedBrand, setSelectedBrand] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [shippingInfo, setShippingInfo] = useState({ name: '', address: '' });
+  const [isCartBumping, setIsCartBumping] = useState(false);
+  const sliderRef = useRef(null);
+
+  // Updated brand color to #0d132b
+  const brandColor = '#0d132b';
+
+  const brands = [
+    { id: 'apple', name: 'Apple', logo: 'https://www.freepnglogos.com/uploads/apple-logo-png/apple-logo-png-dallas-shootings-don-add-are-speech-zones-used-4.png' },
+    { id: 'samsung', name: 'Samsung', logo: 'https://www.freepnglogos.com/uploads/original-samsung-logo-10.png' },
+    { id: 'xiaomi', name: 'Xiaomi', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Xiaomi_logo_%282021-%29.svg/500px-Xiaomi_logo_%282021-%29.svg.png' },
+    { id: 'nokia', name: 'Nokia', logo: 'https://images.seeklogo.com/logo-png/10/1/nokia-logo-png_seeklogo-100358.png' },
+    { id: 'google', name: 'Google', logo: 'https://www.pngall.com/wp-content/uploads/5/Google-Logo-PNG-Picture.png' }
+  ];
+
+  const appleProducts = [
+    {
+      id: 'i17pm',
+      name: 'iPhone 17 Pro Max',
+      options: [
+        { color: 'Orange', hex: '#fb923c', img: 'https://www.pngall.com/wp-content/uploads/20/iPhone-17-Pro-Max-Artwork-PNG.png' },
+        { color: 'Silver', hex: '#e5e7eb', img: 'https://pngimg.com/d/iphone17_PNG22.png' },
+        { color: 'Blue', hex: '#1e3a8a', img: 'https://yabloki.ua/media/cache/sylius_shop_product_original/e2/4c/iphone-17-pro-max-256-gb-navy-now-1.png.webp' }
+      ]
+    },
+    {
+      id: 'i17p',
+      name: 'iPhone 17 Pro',
+      options: [
+        { color: 'Blue', hex: '#1e3a8a', img: 'https://yabloki.ua/media/cache/sylius_shop_product_original/e2/4c/iphone-17-pro-max-256-gb-navy-now-1.png.webp' },
+        { color: 'Silver', hex: '#e5e7eb', img: 'https://pngimg.com/d/iphone17_PNG22.png' },
+        { color: 'Orange', hex: '#fb923c', img: 'https://www.pngall.com/wp-content/uploads/20/iPhone-17-Pro-Max-Artwork-PNG.png' }
+      ]
+    },
+    {
+      id: 'apm',
+      name: 'AirPods Pro Max',
+      options: [
+        { color: 'Black', hex: '#111827', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9POn8JrfavL1dxABuJbPplFzZAwS3BQSnHw&s' },
+        { color: 'Sky Blue', hex: '#7dd3fc', img: 'https://miamicenters.com/wp-content/uploads/2025/06/airpods-blue-12.png' },
+        { color: 'Silver', hex: '#d1d5db', img: 'https://i0.wp.com/www.techeasypay.com/wp-content/uploads/2020/12/airpods-max-select-silver-202011.png?fit=470%2C556&ssl=1' }
+      ]
+    },
+    {
+      id: 'ap3',
+      name: 'AirPods Pro 3',
+      img: 'https://png.pngtree.com/png-vector/20231104/ourmid/pngtree-apple-airpods-pro-png-image_10477533.png'
+    },
+    {
+      id: 'i17air',
+      name: 'iPhone 17 Air',
+      img: 'https://pngimg.com/uploads/iphone17/small/iphone17_PNG11.png'
+    }
+  ];
+
+  const addToCart = (product, variant = null) => {
+    if (cart.length >= 10) return; 
+    const item = { ...product, selectedVariant: variant, cartId: Math.random() };
+    setCart(prev => [...prev, item]);
+    
+    setIsCartBumping(true);
+    setTimeout(() => setIsCartBumping(false), 300);
+  };
+
+  const removeFromCart = (cartId) => {
+    setCart(cart.filter(item => item.cartId !== cartId));
+  };
+
+  const handleScroll = (dir) => {
+    if (sliderRef.current) {
+      const scrollAmount = window.innerWidth * 0.7;
+      sliderRef.current.scrollBy({ left: dir === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const ProductCard = ({ product }) => {
+    const [previewIdx, setPreviewIdx] = useState(0);
+    const hasOptions = product.options && product.options.length > 0;
+    const currentImg = hasOptions ? product.options[previewIdx].img : product.img;
+
+    const handleQuickAdd = () => {
+      addToCart(product, hasOptions ? product.options[previewIdx] : null);
+    };
+
+    return (
+      <div 
+        onClick={handleQuickAdd}
+        className="bg-white/10 backdrop-blur-md rounded-2xl p-4 flex items-center justify-between border border-white/20 shadow-lg transition active:scale-95 cursor-pointer hover:bg-white/20 group relative"
+      >
+        <div className="flex items-center gap-4 flex-1">
+          <div className="w-20 h-20 flex items-center justify-center bg-white rounded-xl p-1 shadow-inner relative overflow-hidden">
+            <img 
+              src={currentImg} 
+              alt={product.name} 
+              className="max-w-full max-h-full object-contain transition-all duration-300 group-active:scale-110" 
+              onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=Gadget'; }}
+            />
+            <div className="absolute inset-0 bg-blue-500/20 opacity-0 group-active:opacity-100 flex items-center justify-center transition-opacity">
+               <Plus className="text-blue-600" size={32} />
+            </div>
+          </div>
+          <div className="text-white">
+            <h3 className="font-bold leading-tight">{product.name}</h3>
+            {hasOptions && (
+              <div className="flex gap-2 mt-2">
+                {product.options.map((opt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={(e) => {
+                      e.stopPropagation(); 
+                      setPreviewIdx(idx);
+                    }}
+                    style={{ backgroundColor: opt.hex }}
+                    className={`w-6 h-6 rounded-full border-2 ${previewIdx === idx ? 'border-orange-400 scale-110 shadow-md' : 'border-white'} transition-all`}
+                  />
+                ))}
+              </div>
+            )}
+            <p className="text-[10px] text-orange-400 font-bold uppercase mt-1 opacity-80 tracking-tight text-shadow-sm">Click to add</p>
+          </div>
+        </div>
+        <div className="bg-white/20 p-2 rounded-full text-white active:bg-white active:text-blue-900 transition-colors">
+            <Plus size={20} />
+        </div>
+      </div>
+    );
+  };
+
+  const renderHome = () => (
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 text-center" style={{ backgroundColor: brandColor }}>
+      <h1 className="text-2xl font-black mb-2 text-white uppercase tracking-tighter italic">Gadget Shop</h1>
+      <p className="text-blue-200/70 mb-8 text-xs font-bold uppercase tracking-widest">Choose your brand</p>
+      
+      <div className="relative w-full">
+        <div 
+          ref={sliderRef}
+          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-6 py-8 px-10"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {brands.map((brand) => (
+            <div 
+              key={brand.id}
+              onClick={() => { setSelectedBrand(brand.id); setView('brand'); }}
+              className="flex-shrink-0 w-52 h-52 bg-white rounded-[3rem] shadow-2xl flex items-center justify-center p-10 snap-center transform transition active:scale-90 border border-white/10"
+            >
+              <img src={brand.logo} alt={brand.name} className="max-w-full max-h-full object-contain" />
+            </div>
+          ))}
+        </div>
+        <button onClick={() => handleScroll('left')} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-md p-3 rounded-full text-white shadow-lg z-10 active:scale-90"><ChevronLeft size={24} /></button>
+        <button onClick={() => handleScroll('right')} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-md p-3 rounded-full text-white shadow-lg z-10 active:scale-90"><ChevronRight size={24} /></button>
+      </div>
+    </div>
+  );
+
+  const renderBrand = () => {
+    return (
+      <div className="p-4 pb-24 min-h-screen" style={{ backgroundColor: brandColor }}>
+        <div className="flex items-center gap-2 mb-6 pt-12">
+          <button onClick={() => setView('home')} className="p-2 bg-white/10 text-white rounded-full active:scale-90"><ChevronLeft size={20} /></button>
+          <h1 className="text-2xl font-black text-white uppercase italic">{selectedBrand} Store</h1>
+        </div>
+        
+        {selectedBrand === 'apple' ? (
+          <div className="grid grid-cols-1 gap-4">
+            {appleProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-blue-200/50">
+            <Package size={64} className="mb-4 opacity-20" />
+            <p className="font-bold uppercase tracking-widest text-white/50">Coming Soon</p>
+            <button onClick={() => setView('home')} className="mt-4 text-white font-bold underline">Go Back</button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderCart = () => (
+    <div className="p-6 min-h-screen flex flex-col pt-16" style={{ backgroundColor: brandColor }}>
+      <div className="flex items-center gap-2 mb-8 text-white">
+        <button onClick={() => setView('brand')} className="p-2 bg-white/10 rounded-full shadow-sm"><ChevronLeft size={20} /></button>
+        <h1 className="text-2xl font-black italic uppercase">Cart</h1>
+      </div>
+      
+      <div className="flex-1">
+        {cart.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-64 text-blue-200/50">
+            <ShoppingCart size={64} className="mb-4 opacity-20 text-white/20" />
+            <p className="font-black uppercase tracking-widest text-center text-white/40">Cart is empty</p>
+            <button onClick={() => setView('brand')} className="mt-4 text-white font-bold underline">Add Items</button>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-3 mb-10">
+              {cart.map((item) => (
+                <div key={item.cartId} className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-3 rounded-2xl shadow-sm border border-white/20 text-white animate-in slide-in-from-right duration-300">
+                  <img src={item.selectedVariant ? item.selectedVariant.img : item.img} alt="" className="w-14 h-14 object-contain" />
+                  <div className="flex-1">
+                    <p className="font-black text-xs">{item.name}</p>
+                    {item.selectedVariant && <p className="text-[10px] font-bold text-orange-400 uppercase">{item.selectedVariant.color}</p>}
+                  </div>
+                  <button onClick={() => removeFromCart(item.cartId)} className="p-2 text-white/50 hover:text-white font-bold text-[10px] uppercase">Remove</button>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-5 bg-white p-6 rounded-[2.5rem] shadow-2xl">
+              <h2 className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 text-center">Shipping Form</h2>
+              
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-blue-50 p-2 rounded-xl text-blue-900">
+                    <User size={18} />
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Your full name"
+                  className="w-full pl-14 pr-4 py-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm focus:ring-2 focus:ring-blue-900 transition-all text-gray-800"
+                  value={shippingInfo.name}
+                  onChange={(e) => setShippingInfo({...shippingInfo, name: e.target.value})}
+                />
+              </div>
+
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-orange-50 p-2 rounded-xl text-orange-600">
+                    <MapPin size={18} />
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Delivery address"
+                  className="w-full pl-14 pr-4 py-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm focus:ring-2 focus:ring-blue-900 transition-all text-gray-800"
+                  value={shippingInfo.address}
+                  onChange={(e) => setShippingInfo({...shippingInfo, address: e.target.value})}
+                />
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+      
+      <button 
+        disabled={cart.length === 0 || !shippingInfo.name || !shippingInfo.address}
+        onClick={() => setView('success')}
+        className="w-full mt-8 py-5 bg-black text-white rounded-[2rem] font-black text-lg shadow-2xl disabled:bg-white/10 disabled:text-white/30 transition-all active:scale-95 uppercase tracking-widest"
+      >
+        Checkout ({cart.length})
+      </button>
+    </div>
+  );
+
+  const renderSuccess = () => (
+    <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center text-white" style={{ backgroundColor: brandColor }}>
+      <div className="w-24 h-24 bg-white/20 backdrop-blur rounded-full flex items-center justify-center mb-8 animate-bounce">
+        <CheckCircle size={56} className="text-white" />
+      </div>
+      <h1 className="text-4xl font-black mb-4 uppercase tracking-tighter italic text-center">Congratulations, {shippingInfo.name}!</h1>
+      <div className="w-16 h-1 bg-orange-400 mb-6 rounded-full mx-auto" />
+      <p className="text-blue-100 text-lg mb-10 leading-relaxed font-medium text-center">
+        Order successfully placed!<br/>
+        Expect delivery at: <br/>
+        <span className="font-black text-white text-xl block mt-2 underline decoration-orange-400 underline-offset-8">{shippingInfo.address}</span>
+      </p>
+      <button 
+        onClick={() => window.location.reload()}
+        className="w-full max-w-xs py-5 bg-white text-blue-900 rounded-[2rem] font-black text-lg shadow-xl active:scale-95 uppercase tracking-widest"
+      >
+        Back to Home
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="max-w-md mx-auto min-h-screen relative font-sans overflow-hidden border-x border-white/10 shadow-2xl" style={{ backgroundColor: brandColor }}>
+      {/* Cart Button */}
+      {view !== 'success' && (
+        <div className="absolute top-4 right-4 z-50">
+          <button 
+            onClick={() => setView('cart')}
+            className={`bg-white/20 backdrop-blur-lg p-4 rounded-[2rem] shadow-2xl border border-white/20 flex items-center gap-3 transition-all active:scale-90 ${isCartBumping ? 'scale-110 shadow-orange-500/50' : ''}`}
+          >
+            <div className="relative">
+              <ShoppingCart size={22} className="text-white" />
+              {cart.length > 0 && (
+                <div className="absolute -top-3 -right-3 bg-orange-500 text-white text-[10px] w-6 h-6 rounded-full flex items-center justify-center font-black border-4 animate-in zoom-in" style={{ borderColor: brandColor }}>
+                  {cart.length}
+                </div>
+              )}
+            </div>
+            {cart.length > 0 && <span className="font-black text-xs text-white uppercase tracking-tighter">Cart</span>}
+          </button>
+        </div>
+      )}
+
+      <main className="h-full">
+        {view === 'home' && renderHome()}
+        {view === 'brand' && renderBrand()}
+        {view === 'cart' && renderCart()}
+        {view === 'success' && renderSuccess()}
+      </main>
+    </div>
+  );
+};
+
+export default App;
